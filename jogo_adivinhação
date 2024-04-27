@@ -1,0 +1,66 @@
+import System.Random
+
+-- Função gerar um número aleatório entre 1 e 100
+aleatorio :: IO -> Int
+aleatorio = randomRIO (1, 100)
+
+-- Função adivinhar o número
+palpite :: Int -> Int -> IO Int
+palpite numero highscore = do
+    putStrLn "Tente adivinhar o número aleatório entre 1 e 100."
+    palpite' numero highscore 0
+
+palpite' :: Int -> Int -> Int -> IO Int
+palpite' numero highscore tentativas = do
+    putStr "Digite seu palpite: "
+    palpiteStr <- getLine
+
+    let palpite = read palpiteStr
+
+    if palpite < numero
+        then do
+            putStrLn "Tentativas em vão (a musica do avioes do forro) Seu palpite está ABAIXO do correto. Tente um número maior."
+            palpite' numero highscore (tentativas + 1)
+        else if palpite > numero
+            then do
+                putStrLn "Tentativas em vão (a musica do avioes do forro) Seu palpite está ACIMA do correto. Tente um número menor."
+                palpite' numero highscore (tentativas + 1)
+            else do
+                putStrLn $ "Lacrou! Você acertou em " ++ show (tentativas + 1) ++ " tentativas."
+                return (tentativas + 1)
+
+
+main :: IO ()
+main = do
+    putStrLn "Bem Vindo ao Jogo de Adivinhacao!"
+
+-- Função jogar
+jogar :: Int -> IO ()
+jogar highscore = do
+    putStrLn "1. Jogar\n2. Highscore\n3. Sair"
+    putStr "Escolha uma opcao: "
+    opcao <- getLine
+
+    case opcao of
+        "1" -> do
+            numero <- aleatorio
+            tentativas <- palpite numero highscore
+            let novoHighscore = min tentativas highscore
+            putStrLn $ if novoHighscore < highscore
+                then "Segura esse lacre! Novo recorde!"
+                else "Você não bateu o recorde atual."
+            putStrLn "Deseja jogar novamente? Digite sim ou não: "
+            resposta <- getLine
+            if resposta == "sim"
+                then jogar novoHighscore
+                else putStrLn "Obrigada por jogar!"
+        "2" -> do
+            putStrLn $ "Recorde: " ++ show highscore ++ " tentativas."
+            jogar highscore
+        "3" -> do
+            putStrLn "Obrigada por jogar!"
+        _ -> do
+            putStrLn "Opcao invalida. Tente novamente."
+            jogar highscore
+    
+    --jogar 0
