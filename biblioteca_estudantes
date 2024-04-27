@@ -1,0 +1,112 @@
+import System.IO
+
+-- tipo de dados para representar os estudantes (igual o sugerido)
+-- funcoes, variaveis, etc em ingles para padronizar com a estrutura e com as funcoes proprias de haskell
+data Student = Student {
+    studentId :: Int,
+    firstName :: String,
+    lastName :: String,
+    age :: Int
+} deriving (Show)
+
+-- adicionar um estudante à base de dados e mostrar
+addStudent :: [Student] -> IO [Student]
+addStudent database = do
+    putStrLn "Digite o ID do estudante: "
+    studentId <- readLn
+
+    putStrLn "Digite o nome do estudante: "
+    firstName <- getLine
+
+    putStrLn "Digite o sobrenome do estudante: "
+    lastName <- getLine
+
+    putStrLn "Digite a idade do estudante: "
+    age <- readLn
+
+    let newStudent = Student { studentId = studentId, firstName = firstName, lastName = lastName, age = age }
+    return (database ++ [newStudent])
+
+-- filtrar estudantes por ID e mostrar
+getStudentById :: [Student] -> IO ()
+getStudentById database = do
+    putStrLn "Digite o ID do estudante que deseja buscar: "
+    searchId <- readLn
+
+    let result = filter (\student -> studentId student == searchId) database
+    case result of
+        [] -> putStrLn $ "Estudante com ID " ++ show searchId ++ " nao encontrado."
+        (student:_) -> putStrLn $ show student
+
+-- atualizar as informações e mostrar
+
+updateStudentInfo :: [Student] -> IO [Student]
+updateStudentInfo database = do
+    putStrLn "Digite o ID do estudante que deseja atualizar: "
+    updateId <- readLn
+
+    let (before, matchingStudentsAfter) = break (\student -> studentId student == updateId) database
+    case matchingStudentsAfter of
+        [] -> do
+            putStrLn $ "Estudante com ID " ++ show updateId ++ " não encontrado."
+            return database
+        (matchingStudent:after) -> do
+            putStrLn "Digite o novo ID do estudante: "
+            newStudentId <- readLn
+
+            putStrLn "Digite o novo nome do estudante: "
+            newFirstName <- getLine
+
+            putStrLn "Digite o novo sobrenome do estudante: "
+            newLastName <- getLine
+
+            putStrLn "Digite a nova idade do estudante: "
+            newAge <- readLn
+
+            let updatedStudent = Student { studentId = newStudentId, firstName = newFirstName, lastName = newLastName, age = newAge }
+            return (before ++ [updatedStudent] ++ after)
+
+
+-- banco de dados atualizado
+printDatabase :: [Student] -> IO ()
+printDatabase database = do
+    putStrLn "\nDatabase:"
+    mapM_ (\student -> putStrLn $ "ID: " ++ show (studentId student) ++ ", Nome: " ++ firstName student ++ " " ++ lastName student ++ ", Idade: " ++ show (age student)) database
+
+
+main :: IO ()
+main = do
+    let initialDatabase = [] 
+
+    putStrLn "Sistema de Gerenciamento de Dados de Estudantes"
+
+    -- menu com as opcoes necessarias
+  
+
+    let loop database = do
+        putStrLn "\nMenu:"
+        putStrLn "1. Adicionar Estudante"
+        putStrLn "2. Recuperar Estudante por ID"
+        putStrLn "3. Atualizar Informações do Estudante"
+        putStrLn "4. Sair"
+        putStrLn "Escolha a opcao: "
+        choice <- readLn
+
+        case choice of
+            1 -> do
+                newDatabase <- addStudent database
+                printDatabase newDatabase
+                loop newDatabase
+            2 -> do
+                getStudentById database
+                loop database
+            3 -> do
+                updatedDatabase <- updateStudentInfo database
+                printDatabase updatedDatabase
+                loop updatedDatabase
+            4 -> putStrLn "Saindo..."
+            _ -> do
+                putStrLn "Opção inválida."
+                loop database
+
+    loop initialDatabase
